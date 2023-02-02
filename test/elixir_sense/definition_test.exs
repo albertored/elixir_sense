@@ -14,6 +14,27 @@ defmodule ElixirSense.Providers.DefinitionTest do
     refute ElixirSense.definition("__MODULE__", 1, 1)
   end
 
+  test "multiple use" do
+    buffer = """
+    defmodule MyModule do
+      use ElixirSenseExample.{UseExample, UseExample2}
+      #                            ^           ^
+    end
+    """
+
+    %Location{type: :module, file: file, line: line, column: column} =
+      ElixirSense.definition(buffer, 2, 32)
+
+    assert file =~ "elixir_sense/test/support/use_example.ex"
+    assert read_line(file, {line, column}) =~ "ElixirSenseExample.UseExample"
+
+    %Location{type: :module, file: file, line: line, column: column} =
+      ElixirSense.definition(buffer, 2, 44)
+
+    assert file =~ "elixir_sense/test/support/use_example.ex"
+    assert read_line(file, {line, column}) =~ "ElixirSenseExample.UseExample2"
+  end
+
   test "find definition of aliased modules in `use`" do
     buffer = """
     defmodule MyModule do
@@ -161,7 +182,7 @@ defmodule ElixirSense.Providers.DefinitionTest do
     buffer = """
     defmodule MyModule do
       def main, do: my_func("a", "b")
-      #               ^ 
+      #               ^
       def my_func, do: "not this one"
       def my_func(a, b), do: a <> b
     end
@@ -424,7 +445,7 @@ defmodule ElixirSense.Providers.DefinitionTest do
     buffer = """
     defmodule MyModule do
       def func do
-        var1 = 
+        var1 =
           1
       end
     end
